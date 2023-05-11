@@ -96,6 +96,11 @@ def closedNeighborhood(graph):
     return closedNeighborhood
 
 
+def allGraphFromOrder(order):
+    possibilities = itertools.combinations(2 * [i for i in range(order)], 2 * order)
+    print(list(possibilities))
+
+
 if __name__ == '__main__':
     order = int(input("Please enter the graph order : "))
     start = timeit.default_timer()
