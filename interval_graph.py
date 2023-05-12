@@ -4,7 +4,6 @@ import timeit
 from collections import OrderedDict
 
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
 
@@ -96,9 +95,26 @@ def closedNeighborhood(graph):
     return closedNeighborhood
 
 
-def allGraphFromOrder(order):
-    possibilities = itertools.combinations(2 * [i for i in range(order)], 2 * order)
-    print(list(possibilities))
+def intervalGraphBruteForceGenerator(order):
+    graphs = []
+    graphs.append([0])
+    for i in range((2 * order)- 1):
+        newGraphs = []
+        for j in range(len(graphs)):
+            graph = graphs[j]
+            maxPossibility = max(graph)+1
+            if maxPossibility > order - 1:
+                maxPossibility = order - 1
+            possibilities = [i for i in range(maxPossibility+1)]
+            for n in range(maxPossibility+1):
+                if graph.count(n) > 1:
+                    possibilities.remove(n)
+            for possibility in possibilities:
+                g = graph.copy()
+                g.append(possibility)
+                newGraphs.append(g)
+        graphs = newGraphs.copy()
+    return graphs
 
 
 if __name__ == '__main__':
@@ -117,4 +133,5 @@ if __name__ == '__main__':
     for interval in sorted_graph:
         print("Interval = ", interval, "\nDegree : ", len(closedNeighbor(sorted_graph, interval)))
     drawGraphWindow(sorted_graph)
-    allGraphFromOrder(order)
+    graphs = intervalGraphBruteForceGenerator(order)
+    print("graphs : ",graphs)
