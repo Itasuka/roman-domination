@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+
+import argparse
+import random
+
+from matplotlib import pyplot as plt
+
 import interval_graph
 import itertools
 
@@ -71,21 +78,23 @@ def qtrdChecker(graph, solution):
 
 
 def qtrdBruteForce(graph):
-    minSolution = float("inf")
+    minSolution = {0: [], 1: [], 2: []}
+    minSolutionValue = float("inf")
     possibilities = itertools.product([0, 1, 2], repeat=len(graph))
     for possibility in possibilities:
         solution = {0: [], 1: [], 2: []}
         type = list(possibility)
         for i in range(len(graph)):
             solution[type[i]].append(graph[i])
-        value = qtrdChecker(graph,solution)
-        if value != -1:
-            minSolution = min(value,minSolution)
+        value = qtrdChecker(graph, solution)
+        if value != -1 and value < minSolutionValue:
+            minSolutionValue = value
+            minSolution = solution
     return minSolution
 
 
-def drawWithSolution(solution):
-    v0,v1,v2 = solution[0],solution[1],solution[2]
+def drawWithSolution(solution, title="QTRD Solution"):
+    v0, v1, v2 = solution[0], solution[1], solution[2]
     colors = []
     labels = []
     for v in v0:
@@ -97,25 +106,43 @@ def drawWithSolution(solution):
     for v in v2:
         colors.append('firebrick')
         labels.append('V2')
-    interval_graph.drawGraphWindow(v0 + v1 + v2, colors, labels)
+    interval_graph.graphWindow(v0 + v1 + v2, colors, labels, title)
+
+
+def solution(graph):
+    qtrd = qtrd_v1(graph)
+    qtrdValue = qtrdChecker(graph, qtrd)
+    bruteForce = qtrdBruteForce(graph)
+    bruteForceValue = qtrdChecker(graph, bruteForce)
+    if qtrdValue != bruteForceValue:
+        print("QTRD value from algorithm : ", qtrdValue, "\n", qtrd)
+        print("QTRD value from brute force :", bruteForceValue, "\n", bruteForce)
+        drawWithSolution(qtrd, "QTRD from Algorithm")
+        drawWithSolution(bruteForce, "QTRD from brute force")
+        plt.show()
+        return False
+    return True
 
 
 if __name__ == '__main__':
-    order = int(input("Please enter the graph order : "))
-    graph = interval_graph.intervalGraphGen(order)
-    sorted_graph = sorted(graph, key=lambda x: x[1])
-    sorted_graph = sorted(sorted_graph, key=lambda x: len(interval_graph.closedNeighbor(graph, x)))
-    #interval_graph.drawGraphWindow(sorted_graph)
+    parser = argparse.ArgumentParser(description='Compare QTRD function value with Brute Force on interval graph')
+    parser.add_argument('-s', '--samples', type=int, help='the samples number', default=1)
+    parser.add_argument('-o', '--order', type=int, help='the graphs order for the generation, no value --> randomly '
+                                                        'generated', default=-1)
+    args = vars(parser.parse_args())
 
-    res = qtrd_v1(graph)
-    print("V0 : ", res[0])
-    print("V1 : ", res[1])
-    print("V2 : ", res[2])
-    print("Graph : ", graph)
-    drawWithSolution(res)
-
-    check = qtrdChecker(graph, res)
-    print("Check Value : ", check)
-
-    minSolution = qtrdBruteForce(graph)
-    print("Minimum solution : ",minSolution)
+    if args['order'] < 1:
+        for i in range(args['samples']):
+            order = random.randint(1, 11)
+            graph = interval_graph.intervalGraphGen(order)
+            if not solution(graph):
+                break
+    else:
+        graphsPos = interval_graph.intervalGraphBruteForceGenerator(args['order'])
+        graphs = []
+        for graphPos in graphsPos:
+            graph = interval_graph.graphFromPosition(graphPos)
+            graphs.append(graph)
+        for graph in graphs:
+            if not solution(graph):
+                break

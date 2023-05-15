@@ -1,4 +1,5 @@
-import itertools
+#!/usr/bin/env python3
+import argparse
 import random
 import timeit
 from collections import OrderedDict
@@ -35,19 +36,22 @@ def drawGraphTerminal(graph):
         print(res)
 
 
-def drawGraphWindow(graph, colors=None, labels=None):
+def graphWindow(graph, colors=None, labels=None, title="Interval Graph"):
     if labels is None:
         labels = []
     if colors is None:
         colors = ['steelblue']
+
+    fig, ax = plt.subplots()
     y_pos = range(len(graph))
     longueurs = [end - start for start, end in graph]
     start_points = [start for start, end in graph]
     end_points = [end for start, end in graph]
-    plt.xticks(start_points + end_points, start_points + end_points)
-    plt.grid(axis='x', linestyle='--', linewidth=0.5)
-    plt.yticks([])
-    plt.ylabel('')
+    ax.set_xticks(start_points + end_points, start_points + end_points)
+    ax.grid(axis='x', linestyle='--', linewidth=0.5)
+    ax.set_yticks([])
+    ax.set_ylabel('')
+
     legend_elements = []
     unique_colors = OrderedDict()
     for color, label in zip(colors, labels):
@@ -56,14 +60,9 @@ def drawGraphWindow(graph, colors=None, labels=None):
             legend_elements.append(Patch(facecolor=color))
     for i, color in enumerate(unique_colors.keys()):
         legend_elements[i].set_label(unique_colors[color])
-    plt.barh(y_pos, longueurs, left=start_points, color=colors)
-    plt.legend(handles=legend_elements)
-    plt.show()
-
-
-def order(graph):
-    return len(graph)
-
+    ax.set_title(title)
+    ax.barh(y_pos, longueurs, left=start_points, color=colors)
+    ax.legend(handles=legend_elements)
 
 def neighbor(graph, v):
     l_v = v[0]
@@ -97,6 +96,8 @@ def closedNeighborhood(graph):
 
 def intervalGraphBruteForceGenerator(order):
     graphs = []
+    if (order < 1):
+        return graphs
     graphs.append([0])
     for i in range((2 * order)- 1):
         newGraphs = []
@@ -116,22 +117,44 @@ def intervalGraphBruteForceGenerator(order):
         graphs = newGraphs.copy()
     return graphs
 
+def graphFromPosition(positions):
+    graph = []
+    res = {i : [] for i in range(len(positions)//2)}
+    for i in range(len(positions)):
+        res[positions[i]].append(i)
+    for i in range(len(res)):
+        graph.append((res[i][0],res[i][1]))
+    return graph
+
 
 if __name__ == '__main__':
-    order = int(input("Please enter the graph order : "))
+    parser = argparse.ArgumentParser(description='Generate an interval graph')
+    parser.add_argument('-o', '--order', type=int, help='the order of the graph', default=1)
+    parser.add_argument('-a', '--all', dest='allGraph', action='store_true', help='generate all graph from order')
+    parser.add_argument('-dt', '--draw-terminal', dest='drawTerminal', action='store_true', help='draw the graph on terminal instead of matplotlib')
+    parser.add_argument('-t', '--time', dest='time', action='store_true', help='show the run time')
+    args = vars(parser.parse_args())
+
     start = timeit.default_timer()
-    graph = intervalGraphGen(order)
+    if args['allGraph']:
+        graphsPos = intervalGraphBruteForceGenerator(args['order'])
+        graphs = []
+        for graphPos in graphsPos:
+            graph = graphFromPosition(graphPos)
+            graphs.append(graph)
+        if args['drawTerminal']:
+            for graph in graphs:
+                drawGraphTerminal(graph)
+        else:
+            for graph in graphs:
+                graphWindow(graph)
+    else:
+        graph = intervalGraphGen(args['order'])
+        if args['drawTerminal']:
+            drawGraphTerminal(graph)
+        else:
+            graphWindow(graph)
     stop = timeit.default_timer()
-    print("time : ", stop - start)
-    for interval in graph:
-        print("left : ", interval[0], "; right : ", interval[1])
-        print("neighbor = ", neighbor(graph, interval))
-        print("closedneighbor = ", closedNeighbor(graph, interval))
-    drawGraphTerminal(graph)
-    sorted_graph = sorted(graph, key=lambda x: len(closedNeighbor(graph, x)))
-    print("Result : ", sorted_graph)
-    for interval in sorted_graph:
-        print("Interval = ", interval, "\nDegree : ", len(closedNeighbor(sorted_graph, interval)))
-    drawGraphWindow(sorted_graph)
-    graphs = intervalGraphBruteForceGenerator(order)
-    print("graphs : ",graphs)
+    if (args['time']):
+        print('Run time : ', stop-start)
+    plt.show()
