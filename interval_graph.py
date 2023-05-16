@@ -9,6 +9,12 @@ from matplotlib.patches import Patch
 
 
 def intervalGraphGen(order):
+    """
+    Normalized interval model to generate random interval graphs
+
+    :param order: The graph order
+    :return: a tuple list representing a random interval graphs
+    """
     remaining = [i for i in range(2 * order)]
     graph = []
     while remaining:
@@ -20,6 +26,11 @@ def intervalGraphGen(order):
 
 
 def drawGraphTerminal(graph):
+    """
+    Draw the graph on the terminal
+
+    :param graph: the graph to draw
+    """
     for interval in graph:
         left = interval[0]
         right = interval[1]
@@ -36,7 +47,15 @@ def drawGraphTerminal(graph):
         print(res)
 
 
-def graphWindow(graph, colors=None, labels=None, title="Interval Graph"):
+def drawGraphWindow(graph, colors=None, labels=None, title="Interval Graph"):
+    """
+    Add a new window for a graph to be drawn
+
+    :param graph: the graph to draw
+    :param colors: list of the colors of the graphs intervals
+    :param labels: list of label for the intervals
+    :param title: the graph title
+    """
     if labels is None:
         labels = []
     if colors is None:
@@ -65,6 +84,13 @@ def graphWindow(graph, colors=None, labels=None, title="Interval Graph"):
     ax.legend(handles=legend_elements)
 
 def neighbor(graph, v):
+    """
+    The neighbor for an interval v in a graph
+
+    :param graph: a graph
+    :param v: an interval
+    :return: the list of the neighbor of v in the graph
+    """
     l_v = v[0]
     r_v = v[1]
     neighbor = []
@@ -77,24 +103,23 @@ def neighbor(graph, v):
 
 
 def closedNeighbor(graph, v):
+    """
+    The neighbor of v union v
+
+    :param graph: a graph
+    :param v: an interval
+    :return: the neighbor of v union v in the graph
+    """
     return neighbor(graph, v) + [v]
 
 
-def neighborhood(graph):
-    neighborhood = []
-    for interval in graph:
-        neighborhood.append(neighbor(graph, interval))
-    return neighborhood
-
-
-def closedNeighborhood(graph):
-    closedNeighborhood = []
-    for interval in graph:
-        closedNeighborhood.append(closedNeighbor(graph, interval))
-    return closedNeighborhood
-
-
 def intervalGraphBruteForceGenerator(order):
+    """
+    Generator of all interval graphs from an order
+
+    :param order: order of graphs
+    :return: list of position representing all the possibilities for the interval graphs for order
+    """
     graphs = []
     if (order < 1):
         return graphs
@@ -103,12 +128,12 @@ def intervalGraphBruteForceGenerator(order):
         newGraphs = []
         for j in range(len(graphs)):
             graph = graphs[j]
-            maxPossibility = max(graph)+1
+            maxPossibility = max(graph)+1 # maximum possibility for the next position
             if maxPossibility > order - 1:
                 maxPossibility = order - 1
             possibilities = [i for i in range(maxPossibility+1)]
             for n in range(maxPossibility+1):
-                if graph.count(n) > 1:
+                if graph.count(n) > 1: # removing already ended possibilities
                     possibilities.remove(n)
             for possibility in possibilities:
                 g = graph.copy()
@@ -118,6 +143,12 @@ def intervalGraphBruteForceGenerator(order):
     return graphs
 
 def graphFromPosition(positions):
+    """
+    Generate a graph from a list of position
+
+    :param positions: a list of position representing the interval disposition
+    :return: a tuple list representing a graph
+    """
     graph = []
     res = {i : [] for i in range(len(positions)//2)}
     for i in range(len(positions)):
@@ -147,14 +178,14 @@ if __name__ == '__main__':
                 drawGraphTerminal(graph)
         else:
             for graph in graphs:
-                graphWindow(graph)
+                drawGraphWindow(graph)
     else:
         graph = intervalGraphGen(args['order'])
         if args['drawTerminal']:
             drawGraphTerminal(graph)
         else:
-            graphWindow(graph)
+            drawGraphWindow(graph)
     stop = timeit.default_timer()
     if (args['time']):
-        print('Run time : ', stop-start)
+        print('Run time : ', stop-start, " sec")
     plt.show()
