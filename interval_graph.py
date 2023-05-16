@@ -83,6 +83,7 @@ def drawGraphWindow(graph, colors=None, labels=None, title="Interval Graph"):
     ax.barh(y_pos, longueurs, left=start_points, color=colors)
     ax.legend(handles=legend_elements)
 
+
 def neighbor(graph, v):
     """
     The neighbor for an interval v in a graph
@@ -116,6 +117,9 @@ def closedNeighbor(graph, v):
 def intervalGraphBruteForceGenerator(order):
     """
     Generator of all interval graphs from an order
+    f a func defining the number of graph generated:
+    - f(0) = 0
+    - f(order) = (2 * order - 1) * f(order - 1)
 
     :param order: order of graphs
     :return: list of position representing all the possibilities for the interval graphs for order
@@ -141,6 +145,7 @@ def intervalGraphBruteForceGenerator(order):
                 newGraphs.append(g)
         graphs = newGraphs.copy()
     return graphs
+
 
 def graphFromPosition(positions):
     """

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import os.path
 import random
 
 from matplotlib import pyplot as plt
@@ -178,7 +179,7 @@ def drawWithSolution(solution, title="QTRD Solution"):
     interval_graph.drawGraphWindow(v0 + v1 + v2, colors, labels, title)
 
 
-def solution(graph):
+def counter_example(graph, saveExample=False):
     """
     Compare the first version of QTRD algorithm to the Brute Force
 
@@ -194,7 +195,16 @@ def solution(graph):
         print("QTRD value from algorithm : ", qtrdValue, "\n", qtrd)
         print("QTRD value from brute force :", bruteForceValue, "\n", bruteForce)
         drawWithSolution(qtrd, "QTRD from Algorithm")
+        path = "qtrdv1/"
+        if saveExample and not os.path.exists(path):
+            os.makedirs(path)
+        if saveExample:
+            plt.savefig(path+"algo_"+saveExample)
+            print("Algorithm solution for counter example saved at : \"", path, "algo_", saveExample, "\"")
         drawWithSolution(bruteForce, "QTRD from brute force")
+        if saveExample:
+            plt.savefig(path+"bruteforce_"+saveExample)
+            print("Brute force solution for counter example saved at : \"", path, "bruteforce_", saveExample, "\"")
         plt.show()
         return False
     return True
@@ -205,15 +215,17 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--samples', type=int, help='the samples number', default=1)
     parser.add_argument('-o', '--order', type=int, help='the graphs order for the generation, no value --> randomly '
                                                         'generated', default=-1)
+    parser.add_argument('-se', '--saveExample', type=str, dest='saveExample', help='save with the name the counter '
+                                                                                   'example if exist')
     args = vars(parser.parse_args())
 
     cpt = 1
 
     if args['order'] < 1:
         for i in range(args['samples']):
-            order = random.randint(1, 12)
+            order = random.randint(1, 9)
             graph = interval_graph.intervalGraphGen(order)
-            if not solution(graph):
+            if not counter_example(graph, args['saveExample']):
                 break
             print("TEST ", cpt, " SUCCESSFUL")
             cpt += 1
@@ -224,7 +236,7 @@ if __name__ == '__main__':
             graph = interval_graph.graphFromPosition(graphPos)
             graphs.append(graph)
         for graph in graphs:
-            if not solution(graph):
+            if not counter_example(graph, args['saveExample']):
                 break
             print("TEST ", cpt, " SUCCESSFUL")
             cpt += 1
