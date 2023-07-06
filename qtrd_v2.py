@@ -72,6 +72,7 @@ def first_option_true(graph, v, opt, sol):
         if i12 is not None:
             w = thirdNonDominated(graph, v)
             if w is not None:
+                pass
                 if w != i12:
                     i22 = greaterClosedNeighbor(graph, i12)
                     if i22 != i12 and i22 not in interval_graph.closedNeighbor(graph,i1):
@@ -146,39 +147,9 @@ def third_option_true(graph, v, opt, sol):
             updateSolution(sol, v, True, n, True, {0: [], 1: [], 2: []})
 
 
-def first_option_false(graph, v, opt, sol):
-    i1 = greaterClosedNeighbor(graph, v)
-    if i1 is not None:
-        i12 = firstNonDominated(graph, v)
-        if i12 is not None:
-            w = secondNonDominated(graph, v)
-            if w is not None:
-                if w != i12:
-                    i22 = greaterClosedNeighbor(graph, i12)
-                    if i22 != i12 and i22 in interval_graph.closedNeighbor(graph,w) and i22 not in interval_graph.closedNeighbor(graph,i1):
-                        if opt[i22, True] > opt[v, False] + 4:
-                            opt[i22, True] = opt[v, False] + 4
-                            updateSolution(sol, v, False, i22, True, {0: [], 1: [i1, i12], 2: [i22]})
-                    i2 = greaterClosedNeighbor(graph, w)
-                    if i2 not in interval_graph.closedNeighbor(graph, i1):
-                        if i2 not in interval_graph.closedNeighbor(graph, i12):
-                            if opt[i2, False] > opt[v, False] + 4:
-                                opt[i2, False] = opt[v, False] + 4
-                                updateSolution(sol, v, False, i2, False, {0: [], 1: [i1, i12], 2: [i2]})
-                        else:
-                            if opt[i2, True] > opt[v, False] + 4:
-                                opt[i2, True] = opt[v, False] + 4
-                                updateSolution(sol, v, False, i2, True, {0: [], 1: [i1, i12], 2: [i2]})
-            else:
-                n = lastVertex(graph)
-                if opt[n, True] > opt[v, False] + 2:
-                    opt[n, True] = opt[v, False] + 2
-                    updateSolution(sol, v, False, n, True, {0: [], 1: [i1, i12], 2: []})
-
-
 def second_option_false(graph, v, opt, sol):
     i1 = greaterClosedNeighbor(graph, v)
-    if i1 is not None:
+    if i1 is not None and i1 != v:
         w = firstNonDominated(graph, v)
         if w is not None:
             if w != i1:
@@ -250,7 +221,6 @@ def connectedQtrd_v2(graph):
             second_option_true(graph, v, opt, sol)
             third_option_true(graph, v, opt, sol)
         if opt[v, False] != max_value:
-            first_option_false(graph, v, opt, sol)
             second_option_false(graph, v, opt, sol)
             third_option_false(graph, v, opt, sol)
     return sol[lastVertex(graph), True], opt[lastVertex(graph), True]
@@ -276,7 +246,7 @@ def counter_example(graph, saveExample=False):
     :return: True if QTRDV2 solution is minimal
     """
     qtrd_sol, qtrdValue = qtrd_v2(graph)
-    # qtrdValue = qtrd.qtrdChecker(graph, qtrd)
+    #qtrdValue = qtrd.qtrdChecker(graph, qtrd)
     bruteForce = qtrd.qtrdBruteForce(graph)
     bruteForceValue = qtrd.qtrdChecker(graph, bruteForce)
     if qtrdValue != bruteForceValue:
@@ -312,10 +282,12 @@ if __name__ == '__main__':
 
     if args['order'] < 1:
         for i in tqdm(range(args['samples'])):
-            order = random.randint(1, 12)
+            order = random.randint(10,10)
             graph = interval_graph.intervalGraphGen(order)
+            qtrd_sol, qtrd_val = qtrd_v2(graph)
             if not counter_example(graph, args['saveExample']):
                 break
+
             cpt += 1
     else:
         graphsPos = interval_graph.intervalGraphBruteForceGenerator(args['order'])
